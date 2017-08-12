@@ -1,3 +1,14 @@
+
+ //  Provides the computer vision algorithm that processes
+// the image received from the igproc.cpp.
+
+//Sends back extracted information about the circles and the box.
+ 
+ //  Algorithm realisation is based on OpenCV tutorial
+//   from the documentation - goo.gl/rGCvhv.
+
+
+
 #include <algorithm>
 #include <iostream>
 #include <cmath>
@@ -19,6 +30,7 @@ void processImage(cv::Mat& src, CirclesMessage& msg) {
   RNG rng(12345);
   Point2f camCenter(src.cols / 2, src.rows / 2);
   
+    // Convert the captured frame from BGR to HSV.
   Mat threshold_output;
   std::vector<std::vector<Point> > contours;
   std::vector<Vec4i> hierarchy;
@@ -30,22 +42,22 @@ void processImage(cv::Mat& src, CirclesMessage& msg) {
   Mat green_hue_range;
   Mat blue_hue_range;
   
-  // Refuse only pixels in target's colors range
-  //cv::inRange(imgHSV, cv::Scalar(128, 81, 32), cv::Scalar(175, 255, 255), red_hue_range);
-  //cv::inRange(imgHSV, cv::Scalar(102, 110, 49), cv::Scalar(143, 255, 255), blue_hue_range);
+    // Refuse only pixels in target's colors range
+    // First 3 numbers - lower thresholds, last 3 - higher tresholds.
+    // Numbers depends on the color of the target and can be selected experimentally
+    //  using laptop webcam.
   cv::inRange(imgHSV, cv::Scalar(30, 50, 40), cv::Scalar(79, 200, 255), green_hue_range);
   
-  // Summ all ranges
+    /  // It's also possible to use several ranges, summed with addWeighted() function.
+    // Read OpenCV documentation to get more information.
   cv::Mat summ = green_hue_range;
-  //cv::addWeighted(blue_hue_range, 1.0, green_hue_range, 1.0, 0.0, summ);
-  //cv::addWeighted(blue_hue_range, 1.0, summ, 1.0, 0.0, summ);
   
-  // smooth it, otherwise a lot of false circles may be detected
-  //cv::GaussianBlur( summ, summ, cv::Size(9, 9), 2, 2 );
-
-  //morphological opening (remove small objects from the foreground)
+    // Remove unwanted noise.
+    
+    // Morphological opening (remove small objects from the foreground).
   erode(summ, summ, getStructuringElement(MORPH_ELLIPSE, Size(15, 15)) );
-  dilate( summ, summ, getStructuringElement(MORPH_ELLIPSE, Size(10, 10)) ); 
+  dilate( summ, summ, getStructuringElement(MORPH_ELLIPSE, Size(10, 10)) );
+    
   //morphological closing (fill small holes in the foreground)
   dilate( summ, summ, getStructuringElement(MORPH_ELLIPSE, Size(10, 10)) ); 
   erode(summ, summ, getStructuringElement(MORPH_ELLIPSE, Size(10, 10)) );

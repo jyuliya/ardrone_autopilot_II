@@ -1,3 +1,9 @@
+
+  //  Receives the image from the drone and sends it to the features.cpp,
+ //   that processes it and extracts information about the circles and the box.
+
+ // Then receives processed information and sends it to the controller.
+
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
@@ -9,6 +15,8 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Empty.h>
 
+
+//info stract for image processing
 struct ImageProcessor
 {
     bool cv_enabled = false;
@@ -38,8 +46,7 @@ void cmsg2BoxmultiArray(CirclesMessage& cmsg,
 }
 
 // Convert CircleMessage to float multiarray message to send it
-void cmsg2multiArray(CirclesMessage& cmsg,
-                        std_msgs::Float32MultiArray& msg) {
+void cmsg2multiArray(CirclesMessage& cmsg, std_msgs::Float32MultiArray& msg) {
         std::vector<float> vec1;
         for (size_t i = 0; i != cmsg.inTheBox.size(); ++i) {
             vec1.clear();
@@ -101,7 +108,7 @@ void onImage(const sensor_msgs::Image::ConstPtr& image)
 
 }
 
-// Hz
+// Get the information about the camera
 void onCameraInfo(const sensor_msgs::CameraInfoConstPtr& cam_info)
 {
     imgProc.cameraDistortion = cam_info->D;
@@ -126,7 +133,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "imgproc");
     ros::NodeHandle node;
     
-    // M button
+    // M button - enabling the computer visiion algorithm
     ros::Subscriber enableSub = 
             node.subscribe("cv/enable", 1, onEnable);
     
@@ -147,9 +154,6 @@ int main(int argc, char **argv)
             node.subscribe("/ardrone/camera_info", 5, onCameraInfo);
 
     ros::spin();
-    //int count = 0;
-    //++count;
-
 
     return 0;
 }
