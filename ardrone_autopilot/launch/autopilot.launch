@@ -5,6 +5,6 @@
     </node>
     <node name="controller" pkg="ardrone_autopilot" type="controller" output="screen">
     </node>
-    <node name="imgproc" pkg="ardrone_autopilot" type="imgproc" output="screen">
+    <node name="imgHandler" pkg="ardrone_autopilot" type="imgHandler" output="screen">
     </node>
 </launch>

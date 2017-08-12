@@ -1,3 +1,17 @@
+
+/*  
+    controller.cpp
+  ----------------------------------------------------------------------------
+  | Receives the image from the drone and sends it to the compVision.cpp,    |
+  | that processes it and extracts information about the circles and the box.|
+  |                                                                          |
+  | Then receives processed information and sends it to the controller.      |
+  | Some utility classes and functions can be found in the controlHelper.h.  |
+  ----------------------------------------------------------------------------
+
+*/
+
+
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
@@ -6,38 +20,14 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "features.h"
+#include "controlHelper.h"
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
 
 
-class Circle {
- public:
-    float x, y, width, height;
-    bool inTheBox;
-    
-    Circle() {}
-
-    Circle(float _x, float _y, float _width, float _height, bool b):
-        x(_x), 
-        y(_y), 
-        width(_width), 
-        height(_height), 
-        inTheBox(b)
-         {}
-};
-
-// Circle output
-std::ostream &operator<<(std::ostream &os, Circle& c) { 
-    std::string output;
-    output = "X: " + std::to_string(c.x) + '\n';
-    output += "Y: " + std::to_string(c.y) + '\n';
-    output += "Width: " + std::to_string(c.width) + '\n';
-    output += "Height: " + std::to_string(c.height) + '\n';
-    output += "InTheBox: " + std::to_string(c.inTheBox) + '\n';
-    return os << output;
-}
+// PID controller realization.
 
 class PID {
  public:
@@ -52,10 +42,13 @@ class PID {
         kD(Kd), 
         kI(Ki), 
         prevErrorX(0),
-	    prevErrorY(0), 
+	prevErrorY(0), 
         integralX(0),
         integralY(0) {}
-   
+
+    // PID calculation. Takes the error and the flag.
+    //	If x is true, PID calcs ouput for X and for Y otherwise.
+    
     float calculate(float error, bool x) {
 	float prevError, integral;
 	x ? prevError = prevErrorX : prevError = prevErrorY; 
@@ -78,48 +71,34 @@ class PID {
 	x ? integralX = integral : integralY = integral; 
         float output = outP + outI + outD;
 
-    std::cout << "--------------PID------------------\n";
-    std::cout << "Error: " << error << '\n';
-    std::cout << "prevError: " << prevError << '\n';
-    
-    std::cout << "dt: : " << dt << '\n';
-    std::cout << "IntegralX: " << integralX << '\n';
-    std::cout << "IntegralY: " << integralY << '\n';
+	std::cout << "--------------PID------------------\n";
+	std::cout << "Error: " << error << '\n';
+	std::cout << "prevError: " << prevError << '\n';
+
+	std::cout << "dt: : " << dt << '\n';
+	std::cout << "IntegralX: " << integralX << '\n';
+	std::cout << "IntegralY: " << integralY << '\n';
 
 	std::cout << "kP: " << kP << "| P: " << outP << '\n';
 	std::cout << "kI: " << kI << "| I: " << outI << '\n';
 	std::cout << "kD: " << kD << "| D: " << outD << '\n';
+
 	if (x)
-        prevErrorX = error;
+	    prevErrorX = error;
 	else
-        prevErrorY = error;
+	    prevErrorY = error;
 
-        return output;
-    }        
+	return output;
+    }   
+     
 };
 
-
-// Controller struct
-
-class ControlCenter
-{
-    public:
-	int counter;
-        bool enabled, xInBox, yInBox;//, boxCaptured;
-        float imgRows, imgCols;
-        float triCenterX, triCenterY;
-        Box box;
-        std::vector<Circle> targ;
-        ros::Publisher cmdPublisher;
-        PID pid;
-        ros::Time lastLoop;
-        ControlCenter(): pid(0.06, 0.07, 0, 0.02) {} 
-};
+// Global control object to have an easy access to some parameters.
 
 struct ControlCenter control;
 
 
-// Enable/disable controller
+// Enable/disable controller by button 'N'.
 
 void onEnableCtrl(const std_msgs::Empty& toggle_msg) {
     control.enabled = !control.enabled;
@@ -130,7 +109,7 @@ void onEnableCtrl(const std_msgs::Empty& toggle_msg) {
 }
 
 
-// Extract information from incoming message 
+// Extract information from incoming message to the control object. 
 
 void parseArray(const std_msgs::Float32MultiArray& msg) {
     if (msg.data.size() != 0) {
@@ -147,121 +126,66 @@ void parseArray(const std_msgs::Float32MultiArray& msg) {
     }   
 }
 
-bool centerInTriangle() {
-    float x0 = (control.box.right+control.box.left) / 2;
-    float y0 = (control.box.top+control.box.bottom) / 2;
-    float x1 = control.targ[0].x,
-          x2 = control.targ[1].x,
-          x3 = control.targ[2].x,
-          y1 = control.targ[0].y,
-          y2 = control.targ[1].y,
-          y3 = control.targ[2].y;
-    float p1 = (x1 - x0) * (y2 - y1) - (x2 - x1) * (y1 - y0);
-    float p2 = (x2 - x0) * (y3 - y2) - (x3 - x2) * (y2 - y0);
-    float p3 = (x3 - x0) * (y1 - y3) - (x1 - x3) * (y3 - y0);
-    if ((p1 >= 0 && p2 >= 0 && p3 >= 0) || (p1 <= 0 && p2 <= 0 && p3 <= 0))
-    {
-        return true;
-    } else {
-        return false;
-    }
-}
 
-bool checkTheBox() {
-    for (auto& circle : control.targ)
-        if (!circle.inTheBox) {
-            if (circle.x > control.box.right || circle.x < control.box.left)
-                control.xInBox = false;
-            if (circle.y > control.box.bottom || circle.y < control.box.top)
-                control.yInBox = false;
-            return false;
-        }
-    return true;
-}
+// Drone autopilot control.
 
-
-// Center of rectangle around the triangle
-
-void getTriangleCenter() {
-    float maxX = 0, minX = control.box.right + control.box.left,
-          maxY = 0, minY = control.box.top + control.box.bottom;
-  
-    for (auto& circle : control.targ) {
-        if (circle.x > maxX)
-            maxX = circle.x;
-        if (circle.x < minX)
-            minX = circle.x;
-        if (circle.y > maxY)
-            maxY = circle.y;
-        if (circle.y < minY)
-            minY = circle.y;
-    }
-    control.triCenterX = (maxX + minX) / 2;
-    control.triCenterY = (maxY + minY) / 2;
-}
-    
 void controller(geometry_msgs::Twist& msg) {
 
-   std::vector<float> errorsX;
+    std::vector<float> errorsX;
     std::vector<float> errorsY;
     float middleX = (control.box.right+control.box.left) / 2;
     float middleY = (control.box.top+control.box.bottom) / 2;
-/*
-    if (!checkTheBox()) {
+ 
+    // Calculate X and Y errors of the circles that are not in the box.
 
-        float Xerr = control.triCenterX - middleX;
-        float Yerr = control.triCenterY - middleY;
-        std::cout << "YERR : " << Yerr << " XERR: " << Xerr << "\n"; 
-
-        if (!control.xInBox) {
-            if (std::abs(Xerr) > (control.box.right - middleX) / 8) {
-                float velX = control.pid.calculate(Xerr / middleX, true);
-                msg.linear.y = -velX;
-            } else control.xInBox = true;
-        } else if (!control.yInBox)
-            if (std::abs(Yerr) > (control.box.bottom - middleY) / 8) {
-                float velY = control.pid.calculate(Yerr / middleY, false);
-                msg.linear.x = -velY;
-            } else control.yInBox = true;
-    }
-
- */   for (const auto& circle : control.targ) {
+    for (const auto& circle : control.targ) {
 
         if (!circle.inTheBox) {
-            
-        float Xerr = circle.x - middleX;
-		/*float Xerr = 0;
-		if (circle.x > control.box.right)
-		    Xerr = circle.x - control.box.right;
-		else if (circle.x < control.box.left) {
-		    Xerr = circle.x - control.box.left;
-		}*/
-                errorsX.push_back(Xerr);
+		    
+		float Xerr = circle.x - middleX;
+		errorsX.push_back(Xerr);
 
-        float Yerr = circle.y - middleY;
-		/*float Yerr = 0;
-		if (circle.y > control.box.bottom)
-		    Yerr = circle.y - control.box.bottom;
-		else if (circle.y < control.box.top) {
-		    Yerr = circle.y - control.box.top;
-		}*/
-                errorsY.push_back(Yerr);
-                
-                std::cout << "YERR : " << Yerr << " XERR: " << Xerr << "\n"; 
+		float Yerr = circle.y - middleY;
+		errorsY.push_back(Yerr);
+		
+		std::cout << "YERR : " << Yerr << " XERR: " << Xerr << "\n"; 
         }
     }
+
+    // Controlling.
+    // X part.
+
     if (errorsX.size() != 0) {
+
+	// Calculate average X error and normalize it to the [-1, 1] by dividing to the max error.
+
         float summError = 0, avError;
         size_t numError = errorsX.size();
         for (const auto& error : errorsX) {
             summError += error;
             ++numError;
         }
-        avError = (summError / numError) / control.box.left;// middleX;
-//	control.pid.kP = std::max((float)0.05, (320 - control.targ[0].width) / 1800);
-        float vel = control.pid.calculate(avError, true);
-        msg.linear.y = -vel;
+        avError = (summError / numError) / control.box.left;
+	
+/*      It's also possible to change the PID coefficient with 
+         the size of the target to make drone more accurate.
+
+        Not used, optionally. Also should be added in the Y part.
+	control.pid.kP = std::max((float)0.05, (320 - control.targ[0].width) / 1800);
+*/
+
+
+	// Calculate necessary acceleration (velocity indeed, but it requires double PID).
+
+        float acc = control.pid.calculate(avError, true);
+
+	// Send the command to the drone (the command changes drone's tilt).
+
+        msg.linear.y = -acc;
     }
+
+    // The Y part is similar to the X part.
+
     if (errorsY.size() != 0) {
         float summError = 0, avError;
         size_t numError = errorsY.size();
@@ -269,57 +193,60 @@ void controller(geometry_msgs::Twist& msg) {
             summError += error;
             ++numError;
         }
-        avError = (summError / numError) / control.box.top;//middleY;
-//	control.pid.kP = std::max((float)0.1, (320 - control.targ[0].height) / 300);
+        avError = (summError / numError) / control.box.top;
         float vel = control.pid.calculate(avError, false);
         msg.linear.x = -vel;
     }
+
+    // Output sended values to the console.
 
     std::cout << "Command sended!\n";
     std::cout << "Vx -> " << msg.linear.y << '\n';
     std::cout << "Vy -> " << msg.linear.x << '\n';
 }
 
-// Recieving information and controlling the drone
+// Recieves information and runs the control function the drone.
+// Runs when the target information has been received.
+
 void onTarget(const std_msgs::Float32MultiArray& msg) {
         if (control.enabled) {
+
             geometry_msgs::Twist message;
-		if ((ros::Time::now() - control.lastLoop).toSec() >= 0.06) {
-            control.targ.clear();
 
-            parseArray(msg);
-                
-            control.pid.dt = (ros::Time::now() - control.lastLoop).toSec();
-            control.lastLoop = ros::Time::now();
-           // getTriangleCenter();
-            controller(message);
-            
-            // Circle information output
-            
-            std::cout << "-----------------------\n";
-            std::cout << "kP: " << control.pid.kP << ' ';
-            std::cout << "kI: " << control.pid.kI << ' ';
-            std::cout << "kD: " << control.pid.kD << '\n' << '\n';
+	// Runs every 0.06 ms that approximately corresponds to every 2 frame.
+        // Can be changed.
 
-            std::cout << "-----------------------\n";
-	    std::cout << "BOX LEFT: " << control.box.left << '\n';
-	    std::cout << "BOX RIGHT: " << control.box.right << '\n';
-	    std::cout << "BOX TOP: " << control.box.top << '\n';
-	    std::cout << "BOX BOTTOM: " << control.box.bottom << '\n' << '\n';
-            std::cout << "-----------------------\n";
-            for (auto& circle : control.targ) {
-                std::cout << circle << '\n';
-            }
-            std::cout << "-----------------------\n";
-        control.cmdPublisher.publish(message);
-        }/* else if (control.counter == 50){
-			control.counter = 0;
-		} else {
-			++control.counter;
-		}*/
+	    if ((ros::Time::now() - control.lastLoop).toSec() >= 0.06) {
+
+		    control.targ.clear();
+		// Handle received information.
+		    parseArray(msg);
+		
+		// Calculate delta time.
+		    control.pid.dt = (ros::Time::now() - control.lastLoop).toSec();
+		    control.lastLoop = ros::Time::now();
+
+		// Run the controller.
+		    controller(message);
+		    
+		// Circle and box information output		    
+		    std::cout << "-----------------------\n";
+		    std::cout << "BOX LEFT: " << control.box.left << '\n';
+		    std::cout << "BOX RIGHT: " << control.box.right << '\n';
+		    std::cout << "BOX TOP: " << control.box.top << '\n';
+		    std::cout << "BOX BOTTOM: " << control.box.bottom << '\n' << '\n';
+		    std::cout << "-----------------------\n";
+		    for (auto& circle : control.targ) {
+			std::cout << circle << '\n';
+		    }
+		    std::cout << "-----------------------\n";
 			
+                // Send the message.
+		    control.cmdPublisher.publish(message);
+	    }
 	    
 	} else {
+	// Reset saved information if the controller was turned off.
         control.pid.integralX = 0;
         control.pid.integralY = 0;
         control.pid.prevErrorX = 0;
@@ -327,38 +254,42 @@ void onTarget(const std_msgs::Float32MultiArray& msg) {
     }
 }
 
-// Extract box information from incoming message
+// Extract box information from incoming message.
 
 void onBox(const std_msgs::Float32MultiArray& msg) {
-    //if (!control.boxCaptured) {
         control.box.left = msg.data[0];
         control.box.right = msg.data[1];
         control.box.top = msg.data[2];
         control.box.bottom = msg.data[3];
         control.imgRows = msg.data[4];
         control.imgCols = msg.data[5];
-       // control.boxCaptured = true;
-    //}
 }
         
+
+// Changing PID coefficients by buttons.
+
+// Reducing.
+
 void onPidD(const std_msgs::String& str) {
     switch (str.data[0]) {
-        case 'p': control.pid.kP += 0.005;
+        case 'p': control.pid.kP += 0.005; // 'F1'
                   break;
-        case 'i': control.pid.kI += 0.001;
+        case 'i': control.pid.kI += 0.001; // 'F3'
                   break;
-        case 'd': control.pid.kD += 0.005;
+        case 'd': control.pid.kD += 0.005; // 'F5'
                   break;
     }
 }
 
+// Increasing.
+
 void onPidI(const std_msgs::String& str) {
     switch (str.data[0]) {
-        case 'p': control.pid.kP -= 0.0005;
+        case 'p': control.pid.kP -= 0.0005; // 'F2'
                   break;
-        case 'i': control.pid.kI -= 0.0005;
+        case 'i': control.pid.kI -= 0.0005; // 'F4'
                   break;
-        case 'd': control.pid.kD -= 0.0005;
+        case 'd': control.pid.kD -= 0.0005; // 'F6'
                   break;
     }
 }
@@ -366,10 +297,6 @@ void onPidI(const std_msgs::String& str) {
 
 int main(int argc, char **argv)
 {
-    /* 
-     * Vasya was here
-     */
-
     ros::init(argc, argv, "controller");
     ros::NodeHandle node;
     
