@@ -22,7 +22,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include "features.h"
+#include "imgHelper.h"
 using namespace cv;
 
 

@@ -8,9 +8,11 @@
 
 */
 
+#pragma once
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <std_msgs/Float32MultiArray.h>
+#include <ros/ros.h>
 
 struct Box {
     float left;
@@ -41,44 +43,11 @@ struct ImageHandler
 
     ros::Publisher imgPublisher;
     ros::Publisher circlePublisher;
+    ros::Publisher boxSendler;
 
     std::vector<double> cameraDistortion;
     boost::array<double, 9> cameraMatrix;
 };
 
-
-// Convert CircleMessage to Float32MultiArray (only information about box).
-// It provides the possibility of using a static box.
-
-void cmsg2BoxMultiArray(CirclesMessage& cmsg, std_msgs::Float32MultiArray& boxToSend) {
-        std::vector<float> vec1 = {
-                                    cmsg.box.left, 
-                                    cmsg.box.right, 
-                                    cmsg.box.top, 
-                                    cmsg.box.bottom,
-                                    imgHandler.imgRows, imgHandler.imgCols 
-                                  };
-
-        boxToSend.data.insert(boxToSend.data.end(), vec1.begin(), vec1.end());
-}
-
-
-// Convert CircleMessage to Float32MultiArray (information about circles).
-
-void cmsg2MultiArray(CirclesMessage& cmsg, std_msgs::Float32MultiArray& msg) {
-        std::vector<float> vec1;
-        for (size_t i = 0; i != cmsg.inTheBox.size(); ++i) {
-            vec1.clear();
-            vec1 = {
-                    cmsg.circles[i].center.x,
-                    cmsg.circles[i].center.y,
-                    cmsg.circles[i].size.width,
-                    cmsg.circles[i].size.height,
-                    cmsg.inTheBox[i]
-                    };
-            
-            msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
-        }
-} 
 
 

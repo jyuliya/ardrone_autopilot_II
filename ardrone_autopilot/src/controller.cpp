@@ -19,7 +19,6 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "features.h"
 #include "controlHelper.h"
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Empty.h>
@@ -27,71 +26,6 @@
 #include <geometry_msgs/Twist.h>
 
 
-// PID controller realization.
-
-class PID {
- public:
-    float kP, kD, kI;
-    float integralX, integralY;
-    float prevErrorX, prevErrorY;
-    float dt;
-
-    PID(float Dt, float Kp, float Ki, float Kd): 
-        dt(Dt),
-        kP(Kp), 
-        kD(Kd), 
-        kI(Ki), 
-        prevErrorX(0),
-	prevErrorY(0), 
-        integralX(0),
-        integralY(0) {}
-
-    // PID calculation. Takes the error and the flag.
-    //	If x is true, PID calcs ouput for X and for Y otherwise.
-    
-    float calculate(float error, bool x) {
-	float prevError, integral;
-	x ? prevError = prevErrorX : prevError = prevErrorY; 
-	x ? integral = integralX : integral = integralY; 
-        float outP = kP * error;
-
-        integral += error * dt;
-        float outI = kI * integral;
-        
-        float derivative;
-
-        if (prevError != 0) {
-            derivative = (error - prevError) / dt;
-        } else {
-            derivative = 0;
-        }
-
-        float outD = kD * derivative;
-
-	x ? integralX = integral : integralY = integral; 
-        float output = outP + outI + outD;
-
-	std::cout << "--------------PID------------------\n";
-	std::cout << "Error: " << error << '\n';
-	std::cout << "prevError: " << prevError << '\n';
-
-	std::cout << "dt: : " << dt << '\n';
-	std::cout << "IntegralX: " << integralX << '\n';
-	std::cout << "IntegralY: " << integralY << '\n';
-
-	std::cout << "kP: " << kP << "| P: " << outP << '\n';
-	std::cout << "kI: " << kI << "| I: " << outI << '\n';
-	std::cout << "kD: " << kD << "| D: " << outD << '\n';
-
-	if (x)
-	    prevErrorX = error;
-	else
-	    prevErrorY = error;
-
-	return output;
-    }   
-     
-};
 
 // Global control object to have an easy access to some parameters.
 

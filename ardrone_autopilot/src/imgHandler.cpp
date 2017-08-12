@@ -18,7 +18,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "features.h"
+#include "imgHelper.h"
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Empty.h>
 
@@ -26,6 +26,42 @@
 
 struct ImageHandler imgHandler;
 static CirclesMessage cMessage;
+
+
+
+// Convert CircleMessage to Float32MultiArray (only information about box).
+// It provides the possibility of using a static box.
+
+void cmsg2BoxMultiArray(CirclesMessage& cmsg, std_msgs::Float32MultiArray& boxToSend) {
+        std::vector<float> vec1 = {
+                                    cmsg.box.left, 
+                                    cmsg.box.right, 
+                                    cmsg.box.top, 
+                                    cmsg.box.bottom,
+                                    imgHandler.imgRows, imgHandler.imgCols 
+                                  };
+
+        boxToSend.data.insert(boxToSend.data.end(), vec1.begin(), vec1.end());
+}
+
+
+// Convert CircleMessage to Float32MultiArray (information about circles).
+
+void cmsg2MultiArray(CirclesMessage& cmsg, std_msgs::Float32MultiArray& msg) {
+        std::vector<float> vec1;
+        for (size_t i = 0; i != cmsg.inTheBox.size(); ++i) {
+            vec1.clear();
+            vec1 = {
+                    cmsg.circles[i].center.x,
+                    cmsg.circles[i].center.y,
+                    cmsg.circles[i].size.width,
+                    cmsg.circles[i].size.height,
+                    cmsg.inTheBox[i]
+                    };
+            
+            msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
+        }
+} 
 
 
 
@@ -73,8 +109,8 @@ void onImage(const sensor_msgs::Image::ConstPtr& image)
         std_msgs::Float32MultiArray msg;
         std_msgs::Float32MultiArray sendBox;
 
-        cmsg2BoxmultiArray(cMessage, sendBox);
-        cmsg2multiArray(cMessage, msg);
+        cmsg2BoxMultiArray(cMessage, sendBox);
+        cmsg2MultiArray(cMessage, msg);
 
         imgHandler.imgRows = cv_ptr->image.rows;
         imgHandler.imgCols = cv_ptr->image.cols;
