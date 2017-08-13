@@ -1,6 +1,6 @@
 # Ardrone 2.0
 
-* #### What the project is about
+* ## What the project is about
 
 Parrot AR.Drone is a remote controlled flying quadcopter helicopter built by the French company Parrot. The drone is designed to be controlled by mobile or tablet operating systems such as the supported iOS or Android within their respective apps or the unofficial software available for Windows Phone, Samsung BADA and Symbian devices.
 
@@ -19,7 +19,7 @@ Our project based on ROS library and, like any ROS project, it consists of separ
 * Image Processing - gives all the information about drone status, turn on the frame. 
 
 
-* #### How to use
+* ## How to use
 
 All the libraries and soft work only in Ubuntu or Debian. So, firsly install Linux if you don't use it, and than all to let our project compile.
 
@@ -68,7 +68,7 @@ You'll see the window with all camera stream and two console windows with debug 
 |N | autopilot.
 
 
-* #### Some future recomendations
+* ## Some future recomendations
 
 We've found some interesting libraries, which can make the drone control easier:
 
