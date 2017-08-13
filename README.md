@@ -2,7 +2,22 @@
 
 * #### What the project is about
 
-  
+Parrot AR.Drone is a remote controlled flying quadcopter helicopter built by the French company Parrot. The drone is designed to be controlled by mobile or tablet operating systems such as the supported iOS or Android within their respective apps or the unofficial software available for Windows Phone, Samsung BADA and Symbian devices.
+
+The airframe of the AR.Drone, constructed of nylon and carbon fiber parts, measures 57 cm (22 in) across. Two interchangeable hulls were supplied with the airframe, one designed for indoor and one for external flight. The indoor hull is made from EPP foam, and encases the circumference of the blades for protection. The outdoors use hull is made from lightweight plastic, and allows for increased maneuvrability. In total, the AR.Drone has six degrees of freedom, with a miniaturized inertial measurement unit tracking the pitch, roll and yaw for use in stabilisation.
+
+Inside the airframe, a range of sensors assist flight, enabling the interface used by pilots to be simpler, and making advanced flight easier. The onboard computer runs a Linux operating system, and communicates with the pilot through a self-generated Wi-Fi hotspot. The onboard sensors include an ultrasonic altimeter, which is used to provide vertical stabilisation up to 6 m (19 ft 8 in). The rotors are powered by 15 watt, brushless motors powered by an 11.1 Volt lithium polymer battery. This provides approximately 12 minutes of flight time at a speed of 5 m/s (11 mph). Coupled with software on the piloting device, the forward-facing camera allows the drone to build a 3D environment, track objects and drones, and validate shots in augmented reality games.
+
+Our task was the implementation of navigation system for drones, to do it we should have done:
+* 	Track a marked object using OpenCV
+* 	Build a controller that uses navigation data to set the drones navigation parameters: vertical velocity, and rotation about 3 axis.
+
+Our project based on ROS library and, like any ROS project, it consists of separated files and each of them can be written either in python or in c++. These files call nodes and every node is respond for the part of the work: 
+
+* Controller - makes the drone fly above the circles and follow them, if the target isn't static;
+* Computer Vision - 
+* Image Processing - 
+
 
 * #### How to use
 
@@ -24,6 +39,12 @@ Documentation - http://docs.opencv.org/3.3.0/<br>
 
 * #### Some future recomendations
 
+We've found some interesting libraries, which can make the drone control easier:
+
+* Nodecopter - nodejs library, based on ardrone_autonomy, but with some useful functions, which are nit existing in ardrone_autonomy, easier to use, because it doesn't need many other libraries to work.
+<br>Documentation and installation - https://github.com/felixge/node-ar-drone
+
+* Tum
 
 
   
