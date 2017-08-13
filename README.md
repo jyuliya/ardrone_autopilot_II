@@ -23,11 +23,19 @@ Our project based on ROS library and, like any ROS project, it consists of separ
 
 All the libraries and soft work only in Ubuntu or Debian. So, firsly install Linux if you don't use it, and than all to let our project compile.
 
-1. Catkin - library to build the ROS project. To install execute "sudo apt-get install ros-kinetic-catkin" in command line.<br> Documentation - http://wiki.ros.org/catkin
+1. Catkin - library to build the ROS project. <br>Documentation - http://wiki.ros.org/catkin. <br>To install execute in command line:
+
+```
+sudo apt-get install ros-kinetic-catkin
+```
 
 2. ROS - open python/c++  library for robotics. We wrote all code for the "kinetic" version. All the instructions - http://wiki.ros.org/kinetic/Installation/Ubuntu.
 
-3. Ardrone_autonomy - library from the developers of the drone, gives the basic commands to control it - take off, land, hover and so on. To install just execute "sudo apt-get install ros-kinetic-ardrone-autonomy " in command line. <br> Documentation - https://ardrone-autonomy.readthedocs.io/en/latest/installation.html
+3. Ardrone_autonomy - library from the developers of the drone, gives the basic commands to control it - take off, land, hover and so on. <br> Documentation - https://ardrone-autonomy.readthedocs.io/en/latest/installation.html <br> To install just execute in command line:
+
+```
+sudo apt-get install ros-kinetic-ardrone-autonomy
+```
 
 4. OpenCV – open с++/python library to recognising images, video, objets and stuff like that.<br>
 Download - https://sourceforge.net/projects/opencvlibrary/<br>
