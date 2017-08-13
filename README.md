@@ -56,14 +56,16 @@ roslaunch ardrone_autopilot autopilot.launch
 ```
 
 You'll see the window with all camera stream and two console windows with debug information.<br>
-Basic buttons:<br>
-W, A, S, D - to move the drone yourself;<br>
-T - take off;<br>
-L - land;<br>
-[/] - up/down;<br>
-C - change camera;<br>
-M -to turn on the image processing;<br>
-N - autopilot.
+
+|Buttons: |Info|
+|-----|------|
+|W, A, S, D | to move the drone yourself;
+|T | take off;
+|L | land;
+|[ or ] | up or down;<br>
+|C | change camera;
+|M |to turn on the image processing;
+|N | autopilot.
 
 
 * #### Some future recomendations
