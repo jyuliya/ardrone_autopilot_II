@@ -15,8 +15,8 @@ Our task was the implementation of navigation system for drones, to do it we sho
 Our project based on ROS library and, like any ROS project, it consists of separated files and each of them can be written either in python or in c++. These files call nodes and every node is respond for the part of the work: 
 
 * Controller - makes the drone fly above the circles and follow them, if the target isn't static;
-* Computer Vision - 
-* Image Processing - 
+* Computer Vision - detect the target on the camera stream;
+* Image Processing - gives all the information about drone status, turn on the frame. 
 
 
 * #### How to use
@@ -35,6 +35,27 @@ Documentation - http://docs.opencv.org/3.3.0/<br>
 
 5. Qt library - download the installer on button «Get your open source package» on website https://info.qt.io/download-qt-for-application-development
 
+After that, you need to build the project. Change the directory for that one, where you have "src" folder. In command line execute "catkin_make" in this directory. Now all the changes saved and we can run the project.
+
+To run the project we need to run launch files. It is in the folder named "launch". Now there are 2 files: ardrone_autopilot.launch and enviroment.launch. You need to execute in 2 different windows:
+
+```
+roslaunch ardrone_autopilot enviroment.launch
+```
+
+```
+roslaunch ardrone_autopilot autopilot.launch
+```
+
+You'll see the window with all camera stream and two console windows with debug information.<br>
+Basic buttons:<br>
+W, A, S, D - to move the drone yourself;<br>
+T - take off;<br>
+L - land;<br>
+[/] - up/down;<br>
+C - change camera;<br>
+M -to turn on the image processing;<br>
+N - autopilot.
 
 
 * #### Some future recomendations
