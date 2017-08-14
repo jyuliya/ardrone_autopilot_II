@@ -22,6 +22,12 @@ Our project based on ROS library and, like any ROS project, it consists of separ
 
 Every node can exchange information with each other, using ROS interfase (publishers and subscribers).<br>
 
+<b> Important note! </b> <br>
+There are two versions of programs. The most number of differences are in the controller's realisation, other parts are generally similar. <br>
+They can be found in different branches in the repository:
+* ju - Julia Reneva's project variation
+* go - Georgiy Kozhevnikov's project variation
+
 #### What we have done
 * Bright colored target detection
 * Controller that makes the drone to follow recognized target
