@@ -55,7 +55,18 @@ Installation - http://docs.opencv.org/3.3.0/d7/d9f/tutorial_linux_install.html<b
 If you use the kinetic ROS version, you should install ported version of tum_simulator: https://github.com/angelsantamaria/tum_simulator
 In other case it's possible to use ROS wiki tutorial about tum_simulator: http://wiki.ros.org/tum_simulator
 
-After that, you need to build the project. Change the directory for that one, where you have "src" folder. In command line execute "catkin_make" in this directory. Now all the changes are saved and we can run the project. After that, 
+After that, you need to build the project. Change the directory for that one, where you have "src" folder. In command line execute "catkin_make" in this directory. Now all the changes are saved and we can run the project. After that, you should edit your .bashrc file in your home directory:
+
+```
+cd ~
+sudo gedit .bashrc
+```
+You should go to the end of the file and add these strings there:
+```
+source ~/catkin_ws(or another workspace name)/devel/setup.bash
+source /opt/ros/kinetic/setup.bash
+```
+It will allow you to run your project from the home directory.
 
 ### Running:
 #### With real drone:
