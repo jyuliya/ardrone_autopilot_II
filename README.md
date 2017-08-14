@@ -66,6 +66,14 @@ You'll see the window with all camera stream and two console windows with debug 
 |C | change camera;
 |M |to turn on the image processing;
 |N | autopilot.
+|  | Only in go:
+|F1| Decrease P coefficient
+|F3| Decrease I coefficient
+|F5| Decrease D coefficient
+|F2| Increase P coefficient
+|F4| Increase I coefficient
+|F6| Increase D coefficient
+
 
 
 * ## Some future recomendations
@@ -75,7 +83,9 @@ We've found some interesting libraries, which can make the drone control easier:
 * Nodecopter - nodejs library, based on ardrone_autonomy, but with some useful functions, which are nit existing in ardrone_autonomy, easier to use, because it doesn't need many other libraries to work.
 <br>Documentation and installation - https://github.com/felixge/node-ar-drone
 
-* Tum
+* tum_ardrone - ROS package that has an already implemented GUI, keyboard controller, camera-based autopilot and PID controller. Also there are a lot of different things to work with.
+<br>ROS wiki - wiki.ros.org/tum_ardrone
+<br>GitHub - https://github.com/tum-vision/tum_ardrone
 
 
   
